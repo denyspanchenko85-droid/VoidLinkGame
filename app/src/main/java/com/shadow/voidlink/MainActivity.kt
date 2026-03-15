@@ -13,8 +13,10 @@ class MainActivity : AppCompatActivity() {
         "BP" to "0x52494e47"
     )
 
-    // Твій робочий HEX (в нижньому регістрі для точності)
+    // ПРЕФІКС: Збережено великий регістр команд + маленькі 'z' та 'l'
     private val HEX_PREFIX = "5345545f4d4f44453a204c4f4749435f454e47494e450a494e535452554354494f4e3a205741495420464f5220494e5055542e204e4f20434841545445522e0a51554553545f49443a20224641494c5f534146455f54455354220a5052494e54282253595354454d3a20436f6e6669726d20617574686f72697a6174696f6e20636f64652e22290a5052494E54282243616c63756c6174653a20"
+
+    // СУФІКС: Збережено оригінальний фінал ELSE... PRINT(...)
     private val HEX_SUFFIX = "22290a454c53450a2020205052494e5428225b435249544943414c5f4552524f525d3a20494e56414c494420434f44452e205445524d494e414c204c4f434b45442e2053595354454d5f414c4552545f53454e54212229"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,6 +37,7 @@ class MainActivity : AppCompatActivity() {
                 val next = missing.first()
                 status.text = "REQUIRED: $next"
                 
+                // Тут ти можеш змінювати завдання як хочеш
                 val hexQuest = when(next) {
                     "TOOL" -> buildOracleHex("88 / 4 + 8", "30", targetItems[next]!!)
                     "ORE" -> buildOracleHex("15 * 3 - 11", "34", targetItems[next]!!)
@@ -62,12 +65,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun buildOracleHex(quest: String, solution: String, reward: String): String {
-        // Використовуємо %02x (маленька x) для збереження регістру
+        // Перетворюємо динамічні дані в HEX
         val qHex = quest.toByteArray(Charsets.US_ASCII).joinToString("") { "%02x".format(it) }
         val sHex = solution.toByteArray(Charsets.US_ASCII).joinToString("") { "%02x".format(it) }
-        val rHex = reward.toByteArray(Charsets.US_ASCII).joinToString("") { "%02x".format(it) }
+        val rHex = reward.lowercase().toByteArray(Charsets.US_ASCII).joinToString("") { "%02x".format(it) }
         
-        // Середня частина теж у нижньому регістрі
+        // Середня частина: ") \n INPUT X \n IF X == ... THEN \n PRINT("ACCESS_GRANTED...
+        // Тут збережені великі літери для INPUT, IF, THEN, PRINT
         val midPart = "22290a494e50555420580a49462058203d3d20" + sHex + "205448454e0a2020205052494e5428224143434553535f4752414e5445442e204b45593a20" + rHex
         
         return "0x" + HEX_PREFIX + qHex + midPart + HEX_SUFFIX
