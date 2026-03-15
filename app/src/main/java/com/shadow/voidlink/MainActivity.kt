@@ -30,11 +30,12 @@ class MainActivity : AppCompatActivity() {
                 val next = missing.first()
                 status.text = "БРАКУЄ: $next"
                 
+                // Інструкція для Оракула виключно на ASCII для стабільності LOGIC_ENGINE
                 val instruction = """
                     SET_MODE: LOGIC_ENGINE
                     INSTRUCTION: WAIT FOR INPUT. NO CHATTER.
                     QUEST_ID: "VOID_LINK_RECOVERY"
-                    PRINT("SYSTEM: Потрібен компонент $next")
+                    PRINT("SYSTEM: Component $next required.")
                     PRINT("Calculate: 15 * 3 - 38")
                     INPUT X
                     IF X == 7 THEN
@@ -43,7 +44,7 @@ class MainActivity : AppCompatActivity() {
                        PRINT("[CRITICAL_ERROR]: INVALID CODE.")
                 """.trimIndent()
 
-                val q = "0x" + instruction.toByteArray().joinToString(""){ "%02X".format(it) }
+                val q = "0x" + instruction.toByteArray(Charsets.US_ASCII).joinToString(""){ "%02X".format(it) }
                 questDisplay.text = "СКОПІЮЙ ЦЕ ОРАКУЛУ:\n$q"
             }
         }
@@ -53,12 +54,12 @@ class MainActivity : AppCompatActivity() {
             if (targetItems.values.contains(txt)) {
                 val componentName = targetItems.filterValues { it == txt }.keys.first()
                 if (inventory.add(componentName)) {
-                    Toast.makeText(this, "Компонент $componentName додано!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Component $componentName added!", Toast.LENGTH_SHORT).show()
                 }
                 input.setText("")
                 updateUI()
             } else {
-                Toast.makeText(this, "Код невірний", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Invalid Code", Toast.LENGTH_SHORT).show()
             }
         }
         updateUI()
