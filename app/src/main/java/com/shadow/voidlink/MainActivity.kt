@@ -13,11 +13,9 @@ class MainActivity : AppCompatActivity() {
         "BP" to "0x52494e47"
     )
 
-    // ПРЕФІКС: Збережено великий регістр команд + маленькі 'z' та 'l'
-    private val HEX_PREFIX = "5345545f4d4f44453a204c4f4749435f454e47494e450a494e535452554354494f4e3a205741495420464f5220494e5055542e204e4f20434841545445522e0a51554553545f49443a20224641494c5f534146455f54455354220a5052494e54282253595354454d3a20436f6e6669726d20617574686f72697a6174696f6e20636f64652e22290a5052494E54282243616c63756c6174653a20"
-
-    // СУФІКС: Збережено оригінальний фінал ELSE... PRINT(...)
-    private val HEX_SUFFIX = "22290a454c53450a2020205052494e5428225b435249544943414c5f4552524f525d3a20494e56414c494420434f44452e205445524d494e414c204c4f434b45442e2053595354454d5f414c4552545f53454e54212229"
+    // Твій "Золотий HEX" у первозданному вигляді
+    private val HEX_PREFIX = "5345545F4D4F44453A204C4F4749435F454E47494E450A494E535452554354494F4E3A205741495420464F5220494E5055542E204E4F20434841545445522E0A51554553545F49443A20224641494C5F534146455F54455354220A5052494E54282253595354454D3A20436F6E6669726D20617574686F72697a6174696f6e20636f64652e22290A5052494E54282243616c63756c6174653A20"
+    private val HEX_SUFFIX = "22290A454C53450A2020205052494E5428225B435249544943414C5F4552524F525D3A20494E56414C494420434F44452E205445524D494E414C204C4F434B45442E2053595354454D5F414C4552545F53454E54212229"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +35,6 @@ class MainActivity : AppCompatActivity() {
                 val next = missing.first()
                 status.text = "REQUIRED: $next"
                 
-                // Тут ти можеш змінювати завдання як хочеш
                 val hexQuest = when(next) {
                     "TOOL" -> buildOracleHex("88 / 4 + 8", "30", targetItems[next]!!)
                     "ORE" -> buildOracleHex("15 * 3 - 11", "34", targetItems[next]!!)
@@ -65,14 +62,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun buildOracleHex(quest: String, solution: String, reward: String): String {
-        // Перетворюємо динамічні дані в HEX
-        val qHex = quest.toByteArray(Charsets.US_ASCII).joinToString("") { "%02x".format(it) }
-        val sHex = solution.toByteArray(Charsets.US_ASCII).joinToString("") { "%02x".format(it) }
-        val rHex = reward.lowercase().toByteArray(Charsets.US_ASCII).joinToString("") { "%02x".format(it) }
+        // Конвертуємо змінні у ВЕЛИКИЙ HEX регістр (%02X) для однорідності з префіксом
+        val qHex = quest.toByteArray().joinToString("") { "%02X".format(it) }
+        val sHex = solution.toByteArray().joinToString("") { "%02X".format(it) }
         
-        // Середня частина: ") \n INPUT X \n IF X == ... THEN \n PRINT("ACCESS_GRANTED...
-        // Тут збережені великі літери для INPUT, IF, THEN, PRINT
-        val midPart = "22290a494e50555420580a49462058203d3d20" + sHex + "205448454e0a2020205052494e5428224143434553535f4752414e5445442e204b45593a20" + rHex
+        // Нагороду робимо маленькими літерами (lowercase) перед HEX, 
+        // щоб вона виглядала як 7375... (success), а не 5355... (SUCCESS)
+        val rHex = reward.lowercase().toByteArray().joinToString("") { "%02X".format(it) }
+        
+        // Середина з великими командами (INPUT, IF, THEN, PRINT)
+        val midPart = "22290A494E50555420580A49462058203D3D20" + sHex + "205448454E0A2020205052494E5428224143434553535F4752414E5445442E204B45593A20" + rHex
         
         return "0x" + HEX_PREFIX + qHex + midPart + HEX_SUFFIX
     }
