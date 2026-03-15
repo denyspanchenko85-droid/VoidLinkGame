@@ -30,7 +30,6 @@ class MainActivity : AppCompatActivity() {
                 val next = missing.first()
                 status.text = "БРАКУЄ: $next"
                 
-                // Формуємо справжню логічну інструкцію для Оракула
                 val instruction = """
                     SET_MODE: LOGIC_ENGINE
                     INSTRUCTION: WAIT FOR INPUT. NO CHATTER.
@@ -52,8 +51,10 @@ class MainActivity : AppCompatActivity() {
         btn.setOnClickListener {
             val txt = input.text.toString().trim().uppercase()
             if (targetItems.values.contains(txt)) {
-                inventory.add(targetItems.filterValues { it == txt }.keys.first())
-                Toast.makeText(this, "Компонент додано!", Toast.LENGTH_SHORT).show()
+                val componentName = targetItems.filterValues { it == txt }.keys.first()
+                if (inventory.add(componentName)) {
+                    Toast.makeText(this, "Компонент $componentName додано!", Toast.LENGTH_SHORT).show()
+                }
                 input.setText("")
                 updateUI()
             } else {
