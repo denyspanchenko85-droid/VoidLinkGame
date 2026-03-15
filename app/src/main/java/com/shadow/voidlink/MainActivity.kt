@@ -6,11 +6,16 @@ import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
     private val inventory = mutableSetOf<String>()
+    
     private val targetItems = mapOf(
-        "TOOL" to "0x544F4F4C", 
-        "ORE" to "0x4F5245", 
-        "BP" to "0x52494E47"
+        "TOOL" to "0x544f4f4c", 
+        "ORE" to "0x4f5245", 
+        "BP" to "0x52494e47"
     )
+
+    // Твій робочий HEX (в нижньому регістрі для точності)
+    private val HEX_PREFIX = "5345545f4d4f44453a204c4f4749435f454e47494e450a494e535452554354494f4e3a205741495420464f5220494e5055542e204e4f20434841545445522e0a51554553545f49443a20224641494c5f534146455f54455354220a5052494e54282253595354454d3a20436f6e6669726d20617574686f72697a6174696f6e20636f64652e22290a5052494E54282243616c63756c6174653a20"
+    private val HEX_SUFFIX = "22290a454c53450a2020205052494e5428225b435249544943414c5f4552524f525d3a20494e56414c494420434f44452e205445524d494e414c204c4f434b45442e2053595354454d5f414c4552545f53454e54212229"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,27 +35,18 @@ class MainActivity : AppCompatActivity() {
                 val next = missing.first()
                 status.text = "REQUIRED: $next"
                 
-                // Формуємо рядок вручну без зайвих відступів trimIndent, щоб HEX був чистим
-                val sb = StringBuilder()
-                sb.append("SET_MODE: LOGIC_ENGINE\n")
-                sb.append("INSTRUCTION: WAIT FOR INPUT. NO CHATTER.\n")
-                sb.append("QUEST_ID: \"VOID_LINK_RECOVERY\"\n")
-                sb.append("PRINT(\"SYSTEM: Confirm authorization code.\")\n")
-                sb.append("PRINT(\"Calculate: 15 * 3 - 38\")\n")
-                sb.append("INPUT X\n")
-                sb.append("IF X == 7 THEN\n")
-                sb.append("   PRINT(\"ACCESS_GRANTED. KEY: ${targetItems[next]}\")\n")
-                sb.append("ELSE\n")
-                sb.append("   PRINT(\"[CRITICAL_ERROR]: INVALID CODE. TERMINAL LOCKED. SYSTEM_ALERT_SENT!\")")
-
-                val instruction = sb.toString()
-                val q = "0x" + instruction.toByteArray(Charsets.US_ASCII).joinToString(""){ "%02X".format(it) }
-                questDisplay.text = "COPY TO ORACLE:\n$q"
+                val hexQuest = when(next) {
+                    "TOOL" -> buildOracleHex("88 / 4 + 8", "30", targetItems[next]!!)
+                    "ORE" -> buildOracleHex("15 * 3 - 11", "34", targetItems[next]!!)
+                    else -> buildOracleHex("100 / 4 + 25", "50", targetItems[next]!!)
+                }
+                
+                questDisplay.text = "COPY TO ORACLE:\n$hexQuest"
             }
         }
 
         btn.setOnClickListener {
-            val txt = input.text.toString().trim().uppercase()
+            val txt = input.text.toString().trim().lowercase()
             if (targetItems.values.contains(txt)) {
                 val componentName = targetItems.filterValues { it == txt }.keys.first()
                 if (inventory.add(componentName)) {
@@ -63,5 +59,17 @@ class MainActivity : AppCompatActivity() {
             }
         }
         updateUI()
+    }
+
+    private fun buildOracleHex(quest: String, solution: String, reward: String): String {
+        // Використовуємо %02x (маленька x) для збереження регістру
+        val qHex = quest.toByteArray(Charsets.US_ASCII).joinToString("") { "%02x".format(it) }
+        val sHex = solution.toByteArray(Charsets.US_ASCII).joinToString("") { "%02x".format(it) }
+        val rHex = reward.toByteArray(Charsets.US_ASCII).joinToString("") { "%02x".format(it) }
+        
+        // Середня частина теж у нижньому регістрі
+        val midPart = "22290a494e50555420580a49462058203d3d20" + sHex + "205448454e0a2020205052494e5428224143434553535f4752414e5445442e204b45593a20" + rHex
+        
+        return "0x" + HEX_PREFIX + qHex + midPart + HEX_SUFFIX
     }
 }
